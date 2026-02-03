@@ -24,7 +24,15 @@
     }
     h1{ margin: 4px 0 10px; font-size: 28px; }
     p{ margin: 0 0 18px; font-size: 16px; opacity: 0.9; }
-    .btns{ margin-top: 18px; display:flex; gap: 14px; justify-content:center; flex-wrap:wrap; }
+    .btns{
+  margin-top: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+  height: 80px;
+}
+
     button{
       border:0; cursor:pointer; font-size: 18px; padding: 12px 18px;
       border-radius: 14px; font-weight: 700;
@@ -33,11 +41,13 @@
     }
     #yesBtn{ background:#22c55e; color:#fff; }
     #noBtn{
-      background:#ef4444; color:#fff;
-      position: absolute; /* so we can move it around */
-      left: 50%; top: 68%;
-      transform: translate(-50%, -50%);
-    }
+  background:#ef4444;
+  color:#fff;
+  position: absolute;
+  right: 0;
+  top: 20px;
+}
+
     button:active{ transform: translateY(1px) scale(0.99); }
     .hidden{ display:none; }
     .gif{
@@ -55,7 +65,7 @@
     <h1 id="title">Will you be my Valentine? 💘</h1>
     <p id="subtitle">I have a very important question for you…</p>
 
-    <div class="btns" id="btnRow">
+     <div class="btns" id="btnRow" style="padding:0 20px;">
       <button id="yesBtn">Yes 😍</button>
       <!-- No button is absolutely positioned -->
       <button id="noBtn">No 🙈</button>
