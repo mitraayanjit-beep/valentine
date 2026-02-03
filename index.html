@@ -1,114 +1,204 @@
-<script>
-  const btnRow  = document.getElementById('btnRow');
-  const yesBtn  = document.getElementById('yesBtn');
-  const noBtn   = document.getElementById('noBtn');
-  const success = document.getElementById('success');
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Be My Valentine? 💖</title>
 
-  // Put NO on the right at the start (so it is visible and stable)
-  function initNoPosition() {
-    const areaW = btnRow.clientWidth;
-    const areaH = btnRow.clientHeight;
-    const noW = noBtn.offsetWidth;
-    const noH = noBtn.offsetHeight;
+  <style>
+    :root { --bg1:#ffdde1; --bg2:#ee9ca7; }
 
-    const x = Math.max(20, areaW - noW - 20);
-    const y = Math.max(20, Math.min(30, areaH - noH - 20));
-
-    noBtn.style.left = x + "px";
-    noBtn.style.top  = y + "px";
-    noBtn.style.right = "auto";
-  }
-
-  function clamp(v, min, max) {
-    return Math.max(min, Math.min(max, v));
-  }
-
-  function rectRelTo(el, parent) {
-    const r = el.getBoundingClientRect();
-    const p = parent.getBoundingClientRect();
-    return { left: r.left - p.left, top: r.top - p.top, right: r.right - p.left, bottom: r.bottom - p.top, width: r.width, height: r.height };
-  }
-
-  function moveNoButton() {
-    const pad = 12;
-
-    const areaW = btnRow.clientWidth;
-    const areaH = btnRow.clientHeight;
-
-    const noW = noBtn.offsetWidth;
-    const noH = noBtn.offsetHeight;
-
-    // Safe area around YES (so NO doesn't cover it)
-    const yes = rectRelTo(yesBtn, btnRow);
-    const safePad = 18;
-
-    const safe = {
-      left: yes.left - safePad,
-      top: yes.top - safePad,
-      right: yes.right + safePad,
-      bottom: yes.bottom + safePad
-    };
-
-    const minX = pad;
-    const maxX = Math.max(pad, areaW - noW - pad);
-    const minY = pad;
-    const maxY = Math.max(pad, areaH - noH - pad);
-
-    function overlapsSafe(x, y) {
-      const noRect = { left: x, top: y, right: x + noW, bottom: y + noH };
-      return !(noRect.right < safe.left || noRect.left > safe.right || noRect.bottom < safe.top || noRect.top > safe.bottom);
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
     }
 
-    // Try random positions but ALWAYS clamp to visible area
-    for (let i = 0; i < 40; i++) {
-      let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-      let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+    .card{
+      width:min(560px, 92vw);
+      background: rgba(255,255,255,0.86);
+      border-radius: 26px;
+      padding: 30px 24px 34px;
+      box-shadow: 0 14px 50px rgba(0,0,0,0.16);
+      text-align:center;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow: visible;
+    }
 
-      x = clamp(x, minX, maxX);
-      y = clamp(y, minY, maxY);
+    h1{ margin: 4px 0 10px; font-size: 30px; }
+    p{ margin: 0 0 18px; font-size: 16px; opacity: 0.9; }
 
-      if (!overlapsSafe(x, y)) {
-        noBtn.style.left = x + "px";
-        noBtn.style.top  = y + "px";
-        noBtn.style.right = "auto";
-        return;
+    .btns{
+      margin-top: 18px;
+      position: relative;
+      height: 110px;
+      overflow: visible;
+    }
+
+    button{
+      border:0;
+      cursor:pointer;
+      font-size: 18px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      font-weight: 800;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+      transition: transform .08s ease, box-shadow .2s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    button:active{ transform: translateY(1px) scale(0.99); }
+
+    #yesBtn{
+      background:#22c55e;
+      color:#fff;
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      z-index: 5;
+    }
+
+    #noBtn{
+      background:#ef4444;
+      color:#fff;
+      position: absolute;
+      left: 0px;     /* JS sets this to right side on load */
+      top: 20px;
+      z-index: 10;
+    }
+
+    .hidden{ display:none; }
+
+    .gif{
+      width:min(380px, 86vw);
+      border-radius: 18px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.16);
+      margin: 14px auto 0;
+      display:block;
+    }
+
+    .small{ font-size: 13px; opacity: 0.75; margin-top: 10px; }
+  </style>
+</head>
+
+<body>
+  <div class="card" id="card">
+    <h1>Will you be my Valentine? 💘</h1>
+    <p>I have a very important question for you…</p>
+
+    <div class="btns" id="btnRow">
+      <button id="yesBtn">Yes 😍</button>
+      <button id="noBtn">No 🙈</button>
+    </div>
+
+    <div id="success" class="hidden">
+      <h1>That’s the best decision you’ve taken! 🥰</h1>
+      <p>Happy Valentine’s Day 💖</p>
+
+      <img class="gif" alt="Celebration GIF"
+        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTN0dnp0bWZpY2x3bHV6cmRjbzMyMzN6cnhlNmV1bHZya2V5bG43YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MDJ9IbxxvDUQM/giphy.gif" />
+
+      <div class="small">P.S. “No” was never a real option 😄</div>
+    </div>
+  </div>
+
+  <script>
+    const btnRow  = document.getElementById('btnRow');
+    const yesBtn  = document.getElementById('yesBtn');
+    const noBtn   = document.getElementById('noBtn');
+    const success = document.getElementById('success');
+
+    function clamp(v, min, max) { return Math.max(min, Math.min(max, v)); }
+
+    function rectRelTo(el, parent) {
+      const r = el.getBoundingClientRect();
+      const p = parent.getBoundingClientRect();
+      return {
+        left: r.left - p.left, top: r.top - p.top,
+        right: r.right - p.left, bottom: r.bottom - p.top,
+        width: r.width, height: r.height
+      };
+    }
+
+    function initNoOnRight() {
+      const areaW = btnRow.clientWidth;
+      const areaH = btnRow.clientHeight;
+      const noW = noBtn.offsetWidth;
+      const noH = noBtn.offsetHeight;
+
+      const x = Math.max(20, areaW - noW - 20);
+      const y = clamp(20, 20, Math.max(20, areaH - noH - 20));
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+      noBtn.style.right = "auto";
+    }
+
+    function moveNoButton() {
+      const pad = 12;
+      const safePad = 18;
+
+      const areaW = btnRow.clientWidth;
+      const areaH = btnRow.clientHeight;
+
+      const noW = noBtn.offsetWidth;
+      const noH = noBtn.offsetHeight;
+
+      const yes = rectRelTo(yesBtn, btnRow);
+      const safe = {
+        left: yes.left - safePad,
+        top: yes.top - safePad,
+        right: yes.right + safePad,
+        bottom: yes.bottom + safePad
+      };
+
+      const minX = pad;
+      const maxX = Math.max(pad, areaW - noW - pad);
+      const minY = pad;
+      const maxY = Math.max(pad, areaH - noH - pad);
+
+      function overlapsSafe(x, y) {
+        const noRect = { left: x, top: y, right: x + noW, bottom: y + noH };
+        return !(noRect.right < safe.left || noRect.left > safe.right || noRect.bottom < safe.top || noRect.top > safe.bottom);
       }
+
+      for (let i = 0; i < 50; i++) {
+        let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+        let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+        x = clamp(x, minX, maxX);
+        y = clamp(y, minY, maxY);
+
+        if (!overlapsSafe(x, y)) {
+          noBtn.style.left = x + "px";
+          noBtn.style.top  = y + "px";
+          noBtn.style.right = "auto";
+          return;
+        }
+      }
+
+      // fallback (still visible)
+      noBtn.style.left = maxX + "px";
+      noBtn.style.top  = maxY + "px";
+      noBtn.style.right = "auto";
     }
 
-    // Fallback (still guaranteed visible)
-    noBtn.style.left = maxX + "px";
-    noBtn.style.top  = maxY + "px";
-    noBtn.style.right = "auto";
-  }
+    noBtn.addEventListener('mouseenter', moveNoButton);
+    noBtn.addEventListener('click', (e) => { e.preventDefault(); moveNoButton(); });
+    noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNoButton(); }, { passive:false });
 
-  // Run away on hover (desktop)
-  noBtn.addEventListener('mouseenter', moveNoButton);
+    yesBtn.addEventListener('click', () => {
+      btnRow.classList.add('hidden');
+      success.classList.remove('hidden');
+    });
 
-  // Run away on touch (mobile)
-  noBtn.addEventListener('touchstart', (e) => {
-    e.preventDefault();
-    moveNoButton();
-  }, { passive:false });
-
-  // If user tries to click it, it runs away
-  noBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    moveNoButton();
-  });
-
-  // YES => show success
-  yesBtn.addEventListener('click', () => {
-    btnRow.classList.add('hidden');
-    success.classList.remove('hidden');
-  });
-
-  // Initialize positions after layout is ready
-  window.addEventListener('load', () => {
-    initNoPosition();
-  });
-
-  // If window resizes, re-place NO so it doesn't end up out of area
-  window.addEventListener('resize', () => {
-    initNoPosition();
-  });
-</script>
+    window.addEventListener('load', initNoOnRight);
+    window.addEventListener('resize', initNoOnRight);
+  </script>
+</body>
+</html>
