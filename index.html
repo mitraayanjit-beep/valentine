@@ -88,8 +88,8 @@
 
 <body>
   <div class="card" id="card">
-    <h1>Sreetama, will you be my Valentine? 💘</h1>
-    <p>I have a very important question for you…</p>
+    <h1 id="questionTitle">Sreetama, will you be my Valentine? 💘</h1>
+    <p id="questionSubtitle">I have a very important question for you…</p>
 
     <div class="btns" id="btnRow">
       <button id="yesBtn">Yes 😍</button>
@@ -193,9 +193,12 @@
     noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNoButton(); }, { passive:false });
 
     yesBtn.addEventListener('click', () => {
-      btnRow.classList.add('hidden');
-      success.classList.remove('hidden');
-    });
+    document.getElementById('questionTitle').classList.add('hidden');
+    document.getElementById('questionSubtitle').classList.add('hidden');
+    btnRow.classList.add('hidden');
+    success.classList.remove('hidden');
+  });
+
 
     window.addEventListener('load', initNoOnRight);
     window.addEventListener('resize', initNoOnRight);
