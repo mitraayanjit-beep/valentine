@@ -1,223 +1,72 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Be My Valentine? 💖</title>
+<script>
+  const btnRow  = document.getElementById('btnRow');
+  const yesBtn  = document.getElementById('yesBtn');
+  const noBtn   = document.getElementById('noBtn');
+  const success = document.getElementById('success');
 
-  <style>
-    :root { --bg1:#ffdde1; --bg2:#ee9ca7; }
+  function moveNoButton() {
+    // Work ONLY within btnRow so it never vanishes
+    const area = btnRow.getBoundingClientRect();
+    const noR  = noBtn.getBoundingClientRect();
+    const yesR = yesBtn.getBoundingClientRect();
 
-    body{
-      margin:0;
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    // padding inside the area
+    const pad = 10;
+
+    // Coordinates relative to btnRow (0..width/height)
+    const maxX = Math.max(pad, area.width - noR.width - pad);
+    const maxY = Math.max(pad, area.height - noR.height - pad);
+
+    // Safe zone around YES (relative to btnRow)
+    const safePad = 16;
+    const safeLeft   = (yesR.left - area.left) - safePad;
+    const safeTop    = (yesR.top  - area.top)  - safePad;
+    const safeRight  = (yesR.right - area.left) + safePad;
+    const safeBottom = (yesR.bottom - area.top) + safePad;
+
+    function overlapsYes(x, y) {
+      const noLeft = x, noTop = y;
+      const noRight = x + noR.width;
+      const noBottom = y + noR.height;
+      return !(noRight < safeLeft || noLeft > safeRight || noBottom < safeTop || noTop > safeBottom);
     }
 
-    .card{
-      width:min(560px, 92vw);
-      background: rgba(255,255,255,0.86);
-      border-radius: 26px;
-      padding: 30px 24px 34px;
-      box-shadow: 0 14px 50px rgba(0,0,0,0.16);
-      text-align:center;
-      backdrop-filter: blur(8px);
-      position: relative;
-      overflow:hidden;
-    }
-
-    h1{ margin: 4px 0 10px; font-size: 30px; }
-    p{ margin: 0 0 18px; font-size: 16px; opacity: 0.9; }
-
-    /* Button area */
-    .btns{
-      margin-top: 18px;
-      position: relative;
-      height: 92px; /* gives room for moving */
-    }
-
-    button{
-      border:0;
-      cursor:pointer;
-      font-size: 18px;
-      padding: 12px 18px;
-      border-radius: 14px;
-      font-weight: 800;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.12);
-      transition: transform .08s ease, box-shadow .2s ease;
-      user-select: none;
-      -webkit-tap-highlight-color: transparent;
-    }
-    button:active{ transform: translateY(1px) scale(0.99); }
-
-    #yesBtn{
-      background:#22c55e;
-      color:#fff;
-      position: absolute;
-      left: 20px;
-      top: 20px;
-    }
-
-    #noBtn{
-      background:#ef4444;
-      color:#fff;
-      position: absolute;
-      right: 20px;
-      top: 20px;
-    }
-
-    .hidden{ display:none; }
-
-    .gif{
-      width:min(380px, 86vw);
-      border-radius: 18px;
-      box-shadow: 0 10px 22px rgba(0,0,0,0.16);
-      margin: 14px auto 0;
-      display:block;
-    }
-
-    .small{ font-size: 13px; opacity: 0.75; margin-top: 10px; }
-
-    /* Optional cute floating hearts */
-    .heart{
-      position:absolute;
-      font-size:18px;
-      opacity:.22;
-      animation: floatUp 8s linear infinite;
-      bottom:-30px;
-      pointer-events:none;
-    }
-    @keyframes floatUp {
-      0%   { transform: translateY(0) rotate(0deg); }
-      100% { transform: translateY(-760px) rotate(260deg); }
-    }
-  </style>
-</head>
-
-<body>
-  <div class="card" id="card">
-    <h1 id="title">Will you be my Valentine? 💘</h1>
-    <p id="subtitle">I have a very important question for you…</p>
-
-    <div class="btns" id="btnRow">
-      <button id="yesBtn">Yes 😍</button>
-      <button id="noBtn">No 🙈</button>
-    </div>
-
-    <div id="success" class="hidden">
-      <h1>That’s the best decision you’ve taken! 🥰</h1>
-      <p>Happy Valentine’s Day 💖</p>
-
-      <!-- Replace this GIF link anytime you want -->
-      <img class="gif" alt="Celebration GIF"
-        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTN0dnp0bWZpY2x3bHV6cmRjbzMyMzN6cnhlNmV1bHZya2V5bG43YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MDJ9IbxxvDUQM/giphy.gif" />
-
-      <div class="small">P.S. “No” was never a real option 😄</div>
-    </div>
-  </div>
-
-  <script>
-    const card    = document.getElementById('card');
-    const btnRow  = document.getElementById('btnRow');
-    const yesBtn  = document.getElementById('yesBtn');
-    const noBtn   = document.getElementById('noBtn');
-    const success = document.getElementById('success');
-
-    // --- Keep "No" inside the card, and avoid overlapping "Yes"
-    function moveNoButton() {
-      const cardRect = card.getBoundingClientRect();
-
-      // The area we allow "No" to move inside (relative to card)
-      const pad = 16;
-
-      // We move within the btnRow area so it looks natural
-      const areaRect = btnRow.getBoundingClientRect();
-
-      // Button sizes
-      const noRect = noBtn.getBoundingClientRect();
-      const yesRect = yesBtn.getBoundingClientRect();
-
-      const areaLeft   = areaRect.left - cardRect.left + pad;
-      const areaTop    = areaRect.top  - cardRect.top  + pad;
-      const areaRight  = areaRect.right - cardRect.left - pad;
-      const areaBottom = areaRect.bottom - cardRect.top - pad;
-
-      const minX = areaLeft;
-      const maxX = areaRight - noRect.width;
-      const minY = areaTop;
-      const maxY = areaBottom - noRect.height;
-
-      // Safe zone around YES so NO never covers its area
-      const safePad = 20;
-      const safeLeft   = (yesRect.left - cardRect.left) - safePad;
-      const safeTop    = (yesRect.top  - cardRect.top)  - safePad;
-      const safeRight  = (yesRect.right - cardRect.left) + safePad;
-      const safeBottom = (yesRect.bottom - cardRect.top) + safePad;
-
-      function overlapsSafeZone(x, y) {
-        const noLeft = x, noTop = y;
-        const noRight = x + noRect.width;
-        const noBottom = y + noRect.height;
-        const overlap = !(noRight < safeLeft || noLeft > safeRight || noBottom < safeTop || noTop > safeBottom);
-        return overlap;
+    // Try several random spots until we find one that doesn't overlap YES
+    for (let i = 0; i < 30; i++) {
+      const x = Math.floor(Math.random() * (maxX - pad + 1)) + pad;
+      const y = Math.floor(Math.random() * (maxY - pad + 1)) + pad;
+      if (!overlapsYes(x, y)) {
+        noBtn.style.left = x + "px";
+        noBtn.style.top  = y + "px";
+        noBtn.style.right = "auto"; // stop using right-based position after first move
+        return;
       }
-
-      // Try multiple random points to avoid the safe zone
-      for (let i = 0; i < 25; i++) {
-        const x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
-        const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
-        if (!overlapsSafeZone(x, y)) {
-          noBtn.style.left = x + "px";
-          noBtn.style.top  = y + "px";
-          noBtn.style.right = "auto"; // disable right positioning after first move
-          return;
-        }
-      }
-
-      // Fallback (if somehow always overlaps), just move low-right
-      noBtn.style.left = (maxX) + "px";
-      noBtn.style.top  = (maxY) + "px";
-      noBtn.style.right = "auto";
     }
 
-    // Run away when mouse comes near
-    noBtn.addEventListener('mouseenter', moveNoButton);
-    // Also run away if user tries clicking
-    noBtn.addEventListener('click', (e) => { e.preventDefault(); moveNoButton(); });
+    // Fallback: put it bottom-right inside the area
+    noBtn.style.left = maxX + "px";
+    noBtn.style.top  = maxY + "px";
+    noBtn.style.right = "auto";
+  }
 
-    // Mobile: run away on touch
-    noBtn.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      moveNoButton();
-    }, { passive:false });
+  // Run away on hover (desktop)
+  noBtn.addEventListener('mouseenter', moveNoButton);
 
-    // YES => show success screen
-    yesBtn.addEventListener('click', () => {
-      btnRow.classList.add('hidden');
-      success.classList.remove('hidden');
-    });
+  // Run away on touch (mobile)
+  noBtn.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    moveNoButton();
+  }, { passive:false });
 
-    // Small initial move so NO is playful (but starts on right)
-    setTimeout(() => {
-      // keep initial position unless you want it to move immediately
-      // moveNoButton();
-    }, 300);
+  // If user tries to click it, it runs away (does NOT vanish)
+  noBtn.addEventListener('click', (e) => {
+    e.preventDefault();
+    moveNoButton();
+  });
 
-    // Optional floating hearts
-    const hearts = ["💖","💘","💕","❤️","💗"];
-    for (let i = 0; i < 10; i++) {
-      const s = document.createElement("div");
-      s.className = "heart";
-      s.textContent = hearts[Math.floor(Math.random() * hearts.length)];
-      s.style.left = Math.floor(Math.random() * 100) + "%";
-      s.style.animationDelay = (Math.random() * 6) + "s";
-      s.style.fontSize = (14 + Math.random() * 18) + "px";
-      card.appendChild(s);
-    }
-  </script>
-</body>
-</html>
+  // YES shows the success message + GIF
+  yesBtn.addEventListener('click', () => {
+    btnRow.classList.add('hidden');
+    success.classList.remove('hidden');
+  });
+</script>
