@@ -4,46 +4,78 @@
   const noBtn   = document.getElementById('noBtn');
   const success = document.getElementById('success');
 
+  // Put NO on the right at the start (so it is visible and stable)
+  function initNoPosition() {
+    const areaW = btnRow.clientWidth;
+    const areaH = btnRow.clientHeight;
+    const noW = noBtn.offsetWidth;
+    const noH = noBtn.offsetHeight;
+
+    const x = Math.max(20, areaW - noW - 20);
+    const y = Math.max(20, Math.min(30, areaH - noH - 20));
+
+    noBtn.style.left = x + "px";
+    noBtn.style.top  = y + "px";
+    noBtn.style.right = "auto";
+  }
+
+  function clamp(v, min, max) {
+    return Math.max(min, Math.min(max, v));
+  }
+
+  function rectRelTo(el, parent) {
+    const r = el.getBoundingClientRect();
+    const p = parent.getBoundingClientRect();
+    return { left: r.left - p.left, top: r.top - p.top, right: r.right - p.left, bottom: r.bottom - p.top, width: r.width, height: r.height };
+  }
+
   function moveNoButton() {
-    // Work ONLY within btnRow so it never vanishes
-    const area = btnRow.getBoundingClientRect();
-    const noR  = noBtn.getBoundingClientRect();
-    const yesR = yesBtn.getBoundingClientRect();
+    const pad = 12;
 
-    // padding inside the area
-    const pad = 10;
+    const areaW = btnRow.clientWidth;
+    const areaH = btnRow.clientHeight;
 
-    // Coordinates relative to btnRow (0..width/height)
-    const maxX = Math.max(pad, area.width - noR.width - pad);
-    const maxY = Math.max(pad, area.height - noR.height - pad);
+    const noW = noBtn.offsetWidth;
+    const noH = noBtn.offsetHeight;
 
-    // Safe zone around YES (relative to btnRow)
-    const safePad = 16;
-    const safeLeft   = (yesR.left - area.left) - safePad;
-    const safeTop    = (yesR.top  - area.top)  - safePad;
-    const safeRight  = (yesR.right - area.left) + safePad;
-    const safeBottom = (yesR.bottom - area.top) + safePad;
+    // Safe area around YES (so NO doesn't cover it)
+    const yes = rectRelTo(yesBtn, btnRow);
+    const safePad = 18;
 
-    function overlapsYes(x, y) {
-      const noLeft = x, noTop = y;
-      const noRight = x + noR.width;
-      const noBottom = y + noR.height;
-      return !(noRight < safeLeft || noLeft > safeRight || noBottom < safeTop || noTop > safeBottom);
+    const safe = {
+      left: yes.left - safePad,
+      top: yes.top - safePad,
+      right: yes.right + safePad,
+      bottom: yes.bottom + safePad
+    };
+
+    const minX = pad;
+    const maxX = Math.max(pad, areaW - noW - pad);
+    const minY = pad;
+    const maxY = Math.max(pad, areaH - noH - pad);
+
+    function overlapsSafe(x, y) {
+      const noRect = { left: x, top: y, right: x + noW, bottom: y + noH };
+      return !(noRect.right < safe.left || noRect.left > safe.right || noRect.bottom < safe.top || noRect.top > safe.bottom);
     }
 
-    // Try several random spots until we find one that doesn't overlap YES
-    for (let i = 0; i < 30; i++) {
-      const x = Math.floor(Math.random() * (maxX - pad + 1)) + pad;
-      const y = Math.floor(Math.random() * (maxY - pad + 1)) + pad;
-      if (!overlapsYes(x, y)) {
+    // Try random positions but ALWAYS clamp to visible area
+    for (let i = 0; i < 40; i++) {
+      let x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+      let y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+      x = clamp(x, minX, maxX);
+      y = clamp(y, minY, maxY);
+
+      if (!overlapsSafe(x, y)) {
         noBtn.style.left = x + "px";
         noBtn.style.top  = y + "px";
-        noBtn.style.right = "auto"; // stop using right-based position after first move
+        noBtn.style.right = "auto";
         return;
       }
     }
 
-    // Fallback: put it bottom-right inside the area
+    // Fallback (still guaranteed visible)
     noBtn.style.left = maxX + "px";
     noBtn.style.top  = maxY + "px";
     noBtn.style.right = "auto";
@@ -58,15 +90,25 @@
     moveNoButton();
   }, { passive:false });
 
-  // If user tries to click it, it runs away (does NOT vanish)
+  // If user tries to click it, it runs away
   noBtn.addEventListener('click', (e) => {
     e.preventDefault();
     moveNoButton();
   });
 
-  // YES shows the success message + GIF
+  // YES => show success
   yesBtn.addEventListener('click', () => {
     btnRow.classList.add('hidden');
     success.classList.remove('hidden');
+  });
+
+  // Initialize positions after layout is ready
+  window.addEventListener('load', () => {
+    initNoPosition();
+  });
+
+  // If window resizes, re-place NO so it doesn't end up out of area
+  window.addEventListener('resize', () => {
+    initNoPosition();
   });
 </script>
