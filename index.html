@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Be My Valentine? 💖</title>
+  <style>
+    :root { --bg1:#ffdde1; --bg2:#ee9ca7; }
+    body{
+      margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    }
+    .card{
+      width:min(520px, 92vw);
+      background: rgba(255,255,255,0.85);
+      border-radius: 24px;
+      padding: 28px 22px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      text-align:center;
+      backdrop-filter: blur(8px);
+      position: relative;
+      overflow:hidden;
+    }
+    h1{ margin: 4px 0 10px; font-size: 28px; }
+    p{ margin: 0 0 18px; font-size: 16px; opacity: 0.9; }
+    .btns{ margin-top: 18px; display:flex; gap: 14px; justify-content:center; flex-wrap:wrap; }
+    button{
+      border:0; cursor:pointer; font-size: 18px; padding: 12px 18px;
+      border-radius: 14px; font-weight: 700;
+      transition: transform .08s ease, box-shadow .2s ease;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.12);
+    }
+    #yesBtn{ background:#22c55e; color:#fff; }
+    #noBtn{
+      background:#ef4444; color:#fff;
+      position: absolute; /* so we can move it around */
+      left: 50%; top: 68%;
+      transform: translate(-50%, -50%);
+    }
+    button:active{ transform: translateY(1px) scale(0.99); }
+    .hidden{ display:none; }
+    .gif{
+      width:min(360px, 86vw);
+      border-radius: 18px;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.16);
+      margin: 14px auto 0;
+      display:block;
+    }
+    .small{ font-size: 13px; opacity: 0.75; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <div class="card" id="card">
+    <h1 id="title">Will you be my Valentine? 💘</h1>
+    <p id="subtitle">I have a very important question for you…</p>
+
+    <div class="btns" id="btnRow">
+      <button id="yesBtn">Yes 😍</button>
+      <!-- No button is absolutely positioned -->
+      <button id="noBtn">No 🙈</button>
+    </div>
+
+    <div id="success" class="hidden">
+      <h1>That’s the best decision you’ve taken! 🥰</h1>
+      <p>Happy Valentine’s Day 💖</p>
+
+      <!-- You can replace this GIF link later -->
+      <img class="gif" alt="Celebration GIF"
+        src="https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExaTN0dnp0bWZpY2x3bHV6cmRjbzMyMzN6cnhlNmV1bHZya2V5bG43YiZlcD12MV9naWZzX3NlYXJjaCZjdD1n/MDJ9IbxxvDUQM/giphy.gif" />
+
+      <div class="small">P.S. If you tried clicking “No”… nice try 😄</div>
+    </div>
+  </div>
+
+  <script>
+    const card = document.getElementById('card');
+    const yesBtn = document.getElementById('yesBtn');
+    const noBtn  = document.getElementById('noBtn');
+    const btnRow = document.getElementById('btnRow');
+    const success = document.getElementById('success');
+
+    function moveNoButton() {
+      const pad = 16;
+
+      // card dimensions
+      const rect = card.getBoundingClientRect();
+      const btnRect = noBtn.getBoundingClientRect();
+
+      // Allowed area inside card
+      const minX = pad;
+      const maxX = rect.width - btnRect.width - pad;
+      const minY = 80; // keep away from top
+      const maxY = rect.height - btnRect.height - pad;
+
+      // Random position within area
+      const x = Math.floor(Math.random() * (maxX - minX + 1)) + minX;
+      const y = Math.floor(Math.random() * (maxY - minY + 1)) + minY;
+
+      noBtn.style.left = x + "px";
+      noBtn.style.top  = y + "px";
+      noBtn.style.transform = "translate(0,0)";
+    }
+
+    // Make it hard to click "No"
+    noBtn.addEventListener('mouseenter', moveNoButton);
+    noBtn.addEventListener('touchstart', (e) => { e.preventDefault(); moveNoButton(); }, { passive:false });
+    noBtn.addEventListener('click', (e) => { e.preventDefault(); moveNoButton(); });
+
+    // "Yes" shows success screen + GIF
+    yesBtn.addEventListener('click', () => {
+      btnRow.classList.add('hidden');
+      success.classList.remove('hidden');
+    });
+
+    // initial tiny move so it's not perfectly centered each time
+    setTimeout(moveNoButton, 250);
+  </script>
+</body>
+</html>
